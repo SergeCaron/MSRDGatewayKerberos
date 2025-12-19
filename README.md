@@ -21,9 +21,9 @@ Each RDP file must be edit to have a successful connection between client and se
 - The value rdgiskdcproxy must be set to 1
 rdgiskdcproxy:i:1
 - The value kdcproxyname must be set to the Remote Desktop Gateway
-kdcproxyname:s:<fqdn>
+kdcproxyname:s:fqdn
 - The value gatewayhostname must also be set to the Remote Desktop Gatway
-gatewayhostname:s:<fqdn>
+gatewayhostname:s:fqdn
 
 This document will be revised ;-)
 
