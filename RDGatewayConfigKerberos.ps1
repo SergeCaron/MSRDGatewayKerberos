@@ -132,11 +132,11 @@ If ($RDSRole.Installed) {
 			Write-Warning ""
 		} else { Write-Warning "No RC4 Encryption supported on this domain. Kerberos may be impacted." }
 
-		### List all objects supporting only AES128-CTS-HMAC-SHA1-96, AES256-CTS-HMAC-SHA1-96
-		$AESSupportedObjects = Get-ADObject -Filter "msDS-supportedEncryptionTypes -eq 0x18"
+		### List all objects supporting AES128-CTS-HMAC-SHA1-96, AES256-CTS-HMAC-SHA1-96
+		$AESSupportedObjects = Get-ADObject -Filter "msDS-supportedEncryptionTypes -band 0x18" -Properties *
 		If ($AESSupportedObjects.Count) {
-			Write-Warning "These AD objects only support Kerberos type encryption:"
-			$AESSupportedObjects | Format-Table Name, ObjectClass, ObjectGUID -AutoSize
+			Write-Warning "These AD objects support Kerberos type encryption:"
+			$AESSupportedObjects | Format-Table Name, ObjectClass, ObjectGUID, msDS-supportedEncryptionTypes -AutoSize
 			Write-Warning ""
 		} else { Write-Warning "No AES Encryption supported on this domain. Kerberos may not be feasible." }
 
