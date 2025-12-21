@@ -125,7 +125,7 @@ If ($RDSRole.Installed) {
 		New-ItemProperty -Path $KpsSvcSettingsReg -Name "HttpsUrlGroup" -Type MultiString -Value "+`:443" -Force | Out-Null
 
 		### List all objects supporting RC4
-		$RC4SupportedObjects = Get-ADObject -Filter "msDS-supportedEncryptionTypes -bor 0x04"
+		[Array] $RC4SupportedObjects = Get-ADObject -Filter "msDS-supportedEncryptionTypes -bor 0x04"
 		If ($RC4SupportedObjects.Count) {
 			Write-Warning "Encryption type RC4 is still supported on these AD objects:"
 			$RC4SupportedObjects | Format-Table Name, ObjectClass, ObjectGUID -AutoSize
@@ -133,7 +133,7 @@ If ($RDSRole.Installed) {
 		} else { Write-Warning "No RC4 Encryption supported on this domain. Kerberos may be impacted." }
 
 		### List all objects supporting AES128-CTS-HMAC-SHA1-96, AES256-CTS-HMAC-SHA1-96
-		$AESSupportedObjects = Get-ADObject -Filter "msDS-supportedEncryptionTypes -band 0x18" -Properties *
+		[Array] $AESSupportedObjects = Get-ADObject -Filter "msDS-supportedEncryptionTypes -band 0x18" -Properties *
 		If ($AESSupportedObjects.Count) {
 			Write-Warning "These AD objects support Kerberos type encryption:"
 			$AESSupportedObjects | Format-Table Name, ObjectClass, ObjectGUID, msDS-supportedEncryptionTypes -AutoSize
