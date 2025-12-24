@@ -1,5 +1,5 @@
 ##******************************************************************
-## Revision date: 2025.12.19
+## Revision date: 2025.12.24
 ##
 ##		2025.12.19: Proof of concept / Initial release
 ##
@@ -19,8 +19,12 @@ Write-Host -ForegroundColor Green "This script made possible with the kind assis
 Write-Host -ForegroundColor Green "You can follow development here : https://learn.microsoft.com/en-us/answers/questions/5649813/"
 Write-Host
 
+### Get the Realm and the Remote Desktop Gateway (with a minimum level of validation)
 $Realm = Read-Host "Please enter the remote Active Directory domain name (not the NetBIOS domain name)"
+# Issue warnings for unreachable hosts
 $KdcFQDN =  Read-Host "Please enter the fully qualified domain name (FQDN) of the Remote Desktop Gateway"
+$KdcConnection = Test-NetConnection -ComputerName $KdcFQDN -Port 443 -ErrorAction SilentlyContinue
+ 
 
 ### Make sure proper case is used in these namespaces
 
