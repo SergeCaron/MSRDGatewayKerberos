@@ -1,9 +1,10 @@
 # MSRDGatewayKerberos
-The convenience of NTLM convenience of credentials based authentication can be maintained with Kerberos. This is a BYOD project for MS RD Gateway Kerberos authentication of non-domain joined workstations.
+The convenience of NTLM credentials based authentication can be maintained with Kerberos. This is a BYOD project for MS RD Gateway Kerberos authentication of non-domain joined workstations.
 
+Members of the *Protected Users* group must authenticate using Kerberos. 
 As documented *[here](https://awakecoding.com/posts/rd-gateway-without-kdc-proxy-causes-ntlm-downgrade/)*, *"if you have an RD Gateway deployed, did you know that unless a KDC proxy is also deployed on the same host and port, you have a guaranteed NTLM downgrade for the RD Gateway connection from mstsc"*.
 
-The purpose of this project is to configure the RD Gateway to avoid this guaranteed downgrade for BYOD devices.
+The purpose of this project is to configure the RD Gateway to avoid this guaranteed downgrade for connections from BYOD devices.
 
 These configuration scripts are work in progress:
 
@@ -54,6 +55,8 @@ Start-Process mstsc.exe -ArgumentList PathToConnector.rdp `
 will successfully connect through the RD Gateway using Kerberos. The RDP session runs under the context of the local user: operations such as cut and paste are limited and it is suggested to switch to a local session to support these and other features.
 
 # Other notes
+
+#### NOTE: A *Certificate Authority* (CA) is not required on either the client or the target domain. These scripts have been tested against AD in Server 2022 and Server 2025 without the use of a CA. A certificate published by an external CA (such as *Let's Encrypt*) is required for the RD Gateway.
 
 #### NOTE: If the RD Gateway is NOT a domain controller, the gateway's Remote Desktop Server listener certificate must be reset on every certificate renewal. Below is typical Powershell code that can be included in the renewal script:
 ````
