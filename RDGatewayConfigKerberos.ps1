@@ -29,7 +29,7 @@ Write-Host "The Network Service user name is:", $NetworkServiceUserName
 
 try {
 	$DefaultDomainEncTypes = Get-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\KDC" `
-		-Name "DefaultDomainSupportedEncTypes"
+		-Name "DefaultDomainSupportedEncTypes" -ErrorAction Stop
 	Write-Host -ForegroundColor Green "DefaultDomainSupportedEncTypes is $DefaultDomainEncTypes." 
 }
 catch {
@@ -98,7 +98,7 @@ if ($RDSRole.Installed) {
 		$SPNs = setspn -L $RDG
 		
 		if ($Myself.Count -eq 2) {
-			Write-Host "Using", $($MyCert.FriendlyName)
+			Write-Host "Using certificate", $($MyCert.FriendlyName)
 			$PublicExposure = $Myself[1]
 			Write-Host "Remote Desktop Gateway is ", $PublicExposure
 
@@ -140,12 +140,12 @@ if ($RDSRole.Installed) {
 			$RC4SupportedObjects | Format-Table Name, ObjectClass, ObjectGUID -AutoSize
 			Write-Warning ""
 		}
-		else { Write-Warning "No RC4 Encryption supported on this domain. Kerberos may be impacted." }
+		else { Write-Warning "No DES / RC4 Encryption exception detected on this domain." }
 
 		### List all objects supporting AES128-CTS-HMAC-SHA1-96, AES256-CTS-HMAC-SHA1-96
 		[Array] $AESSupportedObjects = Get-ADObject -Filter "msDS-supportedEncryptionTypes -band 0x18" -Properties *
 		if ($AESSupportedObjects.Count) {
-			Write-Warning "These AD objects support Kerberos type encryption:"
+			Write-Warning "These AD objects explicitly support Kerberos type encryption:"
 			$AESSupportedObjects | Format-Table Name, ObjectClass, ObjectGUID, msDS-supportedEncryptionTypes -AutoSize
 			Write-Warning ""
 		}
