@@ -1,5 +1,5 @@
 ##******************************************************************
-## Revision date: 2025.12.30
+## Revision date: 2025.12.31
 ##
 ##		2025.12.19: Proof of concept / Initial release
 ##
@@ -27,7 +27,14 @@ $NetworkServiceSid = [System.Security.Principal.SecurityIdentifier]:: `
 $NetworkServiceUserName = ($NetworkServiceSID.Translate([System.Security.Principal.NTAccount])).Value
 Write-Host "The Network Service user name is:", $NetworkServiceUserName
 
-
+try {
+	$DefaultDomainEncTypes = Get-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\KDC" `
+		-Name "DefaultDomainSupportedEncTypes"
+	Write-Host -ForegroundColor Green "DefaultDomainSupportedEncTypes is $DefaultDomainEncTypes." 
+}
+catch {
+	Write-Warning "DefaultDomainSupportedEncTypes not available. Presume 0x27"
+}
 
 $RDSRole = Get-WindowsFeature -Name RDS-Gateway | Select-Object Name, DisplayName, Installed, InstallState
 
@@ -125,10 +132,11 @@ if ($RDSRole.Installed) {
 		New-ItemProperty -Path $KpsSvcSettingsReg -Name "DisallowUnprotectedPasswordAuth" -Type DWORD -Value 0 -Force | Out-Null
 		New-ItemProperty -Path $KpsSvcSettingsReg -Name "HttpsUrlGroup" -Type MultiString -Value "+`:443" -Force | Out-Null
 
-		### List all objects supporting RC4
-		[Array] $RC4SupportedObjects = Get-ADObject -Filter "msDS-supportedEncryptionTypes -bor 0x04"
+		### List all objects supporting only WEAK encryption protocols
+		# See https://support.microsoft.com/en-us/topic/kb5021131-how-to-manage-the-kerberos-protocol-changes-related-to-cve-2022-37966-fd837ac3-cdec-4e76-a6ec-86e67501407d
+		[Array] $RC4SupportedObjects = Get-ADObject -Filter "msDS-supportedEncryptionTypes -bor 0x7 -and -not msDS-supportedEncryptionTypes -bor 0x18"
 		if ($RC4SupportedObjects.Count) {
-			Write-Warning "Encryption type RC4 is still supported on these AD objects:"
+			Write-Warning "Encryption type(s) DES / RC4 explicitly enabled on these AD objects but not AES:"
 			$RC4SupportedObjects | Format-Table Name, ObjectClass, ObjectGUID -AutoSize
 			Write-Warning ""
 		}
