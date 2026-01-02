@@ -30,7 +30,7 @@ $adminRole = [System.Security.Principal.WindowsBuiltInRole]::Administrator
 if (!$myWindowsPrincipal.IsInRole($adminRole)) {
 	Write-Host -ForegroundColor Red "Administrative privileges are required to run this script."
 	Write-Host
-	Exit 911
+	exit 911
 }
 
 ### The Network Service User name is localized

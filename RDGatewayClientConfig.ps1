@@ -31,7 +31,7 @@ $adminRole = [System.Security.Principal.WindowsBuiltInRole]::Administrator
 if (!$myWindowsPrincipal.IsInRole($adminRole)) {
 	Write-Host -ForegroundColor Red "Administrative privileges are required to run this script."
 	Write-Host
-	Exit 911
+	exit 911
 }
 
 ### Get the Realm and the Remote Desktop Gateway (with a minimum level of validation)
