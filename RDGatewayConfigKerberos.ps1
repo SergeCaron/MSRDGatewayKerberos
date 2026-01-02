@@ -19,6 +19,20 @@ Write-Host -ForegroundColor Green "This script made possible with the kind assis
 Write-Host -ForegroundColor Green "You can follow development here : https://learn.microsoft.com/en-us/answers/questions/5649813/"
 Write-Host
 
+# Get the ID and security principal of the current user account
+$myWindowsID = [System.Security.Principal.WindowsIdentity]::GetCurrent()
+$myWindowsPrincipal = New-Object System.Security.Principal.WindowsPrincipal($myWindowsID)
+
+# Get the security principal for the administrator role
+$adminRole = [System.Security.Principal.WindowsBuiltInRole]::Administrator
+
+# Check to see if we are currently running as an administrator
+if (!$myWindowsPrincipal.IsInRole($adminRole)) {
+	Write-Host -ForegroundColor Red "Administrative privileges are required to run this script."
+	Write-Host
+	Exit 911
+}
+
 ### The Network Service User name is localized
 $OutputEncoding = [console]::InputEncoding = [console]::OutputEncoding = New-Object System.Text.UTF8Encoding
 

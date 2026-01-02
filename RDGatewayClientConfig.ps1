@@ -1,7 +1,8 @@
 ##******************************************************************
-## Revision date: 2025.12.30
+## Revision date: 2026.01.02
 ##
 ##		2025.12.19: Proof of concept / Initial release
+##		2026.01.02:	Exit if not running in an elevated command prompt
 ##
 ## Copyright (c) 2025 PC-Évolution enr.
 ## This code is licensed under the GNU General Public License (GPL).
@@ -18,6 +19,20 @@ Write-Host
 Write-Host -ForegroundColor Green "This script made possible with the kind assistance of VPHAN"
 Write-Host -ForegroundColor Green "You can follow development here : https://learn.microsoft.com/en-us/answers/questions/5649813/"
 Write-Host
+
+# Get the ID and security principal of the current user account
+$myWindowsID = [System.Security.Principal.WindowsIdentity]::GetCurrent()
+$myWindowsPrincipal = New-Object System.Security.Principal.WindowsPrincipal($myWindowsID)
+
+# Get the security principal for the administrator role
+$adminRole = [System.Security.Principal.WindowsBuiltInRole]::Administrator
+
+# Check to see if we are currently running as an administrator
+if (!$myWindowsPrincipal.IsInRole($adminRole)) {
+	Write-Host -ForegroundColor Red "Administrative privileges are required to run this script."
+	Write-Host
+	Exit 911
+}
 
 ### Get the Realm and the Remote Desktop Gateway (with a minimum level of validation)
 $Realm = Read-Host "Please enter the remote Active Directory domain name (not the NetBIOS domain name)"
