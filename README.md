@@ -24,9 +24,9 @@ All servers and clients must be configured to accept AES-256-CTS-HMAC-SHA1-96 an
 # The scripts
 There are currently two scripts in this project. The name of these scripts may change in the future as this documentation is rewritten.
 
-- RDGatewayConfigKerberos: This script configures the parameters on the RDG residing either on a DC or on a domain joined server. This script should run whenever the RD Gateway certificate is renewed/replaced.
+- *RDGatewayConfigKerberos*: This script configures the parameters on the RDG residing either on a DC or on a domain joined server. This script should run whenever the RD Gateway certificate is renewed/replaced. A sample script is available demonstrating the a renewal using the "Certify The Web" package.
 
-- RDGatewayClientConfig: This script configures each "Realm" that a non-domain joined workstation will reach.
+- *RDGatewayClientConfig*: This script configures each "Realm" that a non-domain joined workstation will reach.
 
 The first script runs on the RDG. It presume a valid public certificate is installed on the RDG and will setup the necessary parameters to exchange the appropriate tickets between the DC and the remote client. Basically, the script disable HTTPS client certificate authentication requirements for KDC Proxy operations and allow alternative methods, such as passwords or Kerberos over HTTPS, to be used without smart cards. At this point, this is the documentation ;-). See the note below regarding certificate renewals.
 
@@ -66,6 +66,8 @@ $ThumbprintBinary = [byte[]] -split ($Thumbprint -replace '..', '0x$& ')
 $RDServerListener = "HKLM:SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp"
 New-ItemProperty -Path $RDServerListener -Name SSLCertificateSHA1Hash -Type Binary -Value $ThumbprintBinary -Force | Out-Null
 ````
+
+The script *RestartRemoteServices* demonstrates restarting all remote services following a certificate renewal using the *Certify the Web* software.
 
 #### NOTE: Kerberos on the DC contacted by the RD Gateway will issue specific DNS requests before a connection is downgraded to NTLMv1.2
 Specifically:
