@@ -1,8 +1,9 @@
 ##******************************************************************
-## Revision date: 2026.01.02
+## Revision date: 2026.01.06
 ##
 ##		2025.12.19: Proof of concept / Initial release
 ##		2026.01.02:	Exit if not running in an elevated command prompt
+##		2026.01.06: Use proper location for Kerberos policies
 ##
 ## Copyright (c) 2025 PC-Évolution enr.
 ## This code is licensed under the GNU General Public License (GPL).
@@ -53,7 +54,7 @@ if ( -not $(Test-NetConnection -ComputerName $KdcFQDN -Port 443) ) {
 
 ### Location of Kerberos keys
 $KerberosLSA = "HKLM:\SYSTEM\CurrentControlSet\Control\LSA\Kerberos"
-$KerberosPolicies = "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Policies\System\Kerberos\Parameters"
+$KerberosPolicies = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Kerberos\Parameters"
 
 ### Delete this realm and dump actual configuration
 
@@ -103,7 +104,7 @@ catch {
 }
 	
 if ( (Get-ItemProperty -Path "$KerberosLSA\Domains\$Realm").SupportedEncryptionTypes -ne `
-	(Get-ItemProperty -Path "$KerberosPolicies").SupportedEncryptionTypes ) {
+	(Get-ItemProperty -Path "$KerberosPolicies" -ErrorAction SilentlyContinue).SupportedEncryptionTypes ) {
 	Write-Warning "Encryption types for $Realm do not match default Kerberos policies for this computer."
 }
 
