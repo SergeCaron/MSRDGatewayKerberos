@@ -33,6 +33,13 @@ The first script runs on the RDG. It presume a valid public certificate is insta
 
 The second script runs on the client, domain joined or not, for EACH external realm this workstation connects to. It simply asks the remote Active Directory domain name: on small domains, this is typically "mydomain.local", not the NetBIOS domain name "MYDOMAIN". It then asks the fully qualified domain name (FQDN) of the Remote Desktop Gateway: this is the name on the public certificate installed on the RD Gateway, typically "myserver.mydomain.tld".
 
+# Utility scripts
+
+- The script *ParseNTLMAudit* enumerates all NTLM audit entries from all DCs in the domain. The script parameters are *-StartTime* and *-EndTime* and the default date range is the last 24 hours. Enabling NTLM auditing on the domain is not documented here.
+
+- The script *RestartRemoteServices* demonstrates restarting all remote services following a certificate renewal using the *Certify the Web* software. See the note below for details.
+
+
 # Operations
 Start Remote Desktop in Windows (mstsc.exe), configure the remote host to connect to within the *target realm* and the Remote Desktop Gateway. Save these Remote Desktop Connection Settings to a RDP File.
 
@@ -66,8 +73,6 @@ $ThumbprintBinary = [byte[]] -split ($Thumbprint -replace '..', '0x$& ')
 $RDServerListener = "HKLM:SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp"
 New-ItemProperty -Path $RDServerListener -Name SSLCertificateSHA1Hash -Type Binary -Value $ThumbprintBinary -Force | Out-Null
 ````
-
-The script *RestartRemoteServices* demonstrates restarting all remote services following a certificate renewal using the *Certify the Web* software.
 
 #### NOTE: Kerberos on the DC contacted by the RD Gateway will issue specific DNS requests before a connection is downgraded to NTLMv1.2
 Specifically:
