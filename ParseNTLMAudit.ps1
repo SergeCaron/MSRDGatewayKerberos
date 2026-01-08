@@ -33,8 +33,8 @@
 #>
 
 param (
-    [datetime]$StartTime = (Get-Date).AddDays(-1), # Default: last 24 hours
-    [datetime]$EndTime   = (Get-Date)              # Default: now
+	[datetime]$StartTime = (Get-Date).AddDays(-1), # Default: last 24 hours
+	[datetime]$EndTime = (Get-Date)              # Default: now
 )
 
 # Get the ID and security principal of the current user account
@@ -70,7 +70,7 @@ Write-Host "NTLM audit from $StartTime to $EndTime"
 Write-Host
 
 # MS-NRPC NETLOGON_SECURE_CHANNEL_TYPE definition
-$SChannelTypes = @("Null","MsvAp","Workstation","TrustedDnsDomain","TrustedDomain","UasServer","Server","CdcServer")
+$SChannelTypes = @("Null", "MsvAp", "Workstation", "TrustedDnsDomain", "TrustedDomain", "UasServer", "Server", "CdcServer")
 
 # Get all DCs in this Domain
 $DCs = Get-ADDomainController -Filter * | Select-Object -ExpandProperty HostName
@@ -90,7 +90,8 @@ foreach ($DC in $DCs) {
 
 		if (-not $events) {
 			Write-Host "No Event ID 8004 entries found in the specified time range." -ForegroundColor Yellow
-		} else {
+		}
+		else {
 			# Parse and display relevant fields
 			$parsed += foreach ($event in $events) {
 				$xml = [xml]$event.ToXml()
@@ -103,17 +104,18 @@ foreach ($DC in $DCs) {
 
 				[PSCustomObject]@{
 					TimeCreated     = $event.TimeCreated
-					Controller	    = $DC.Split('.')[0]
+					Controller      = $DC.Split('.')[0]
 					TargetUser      = $data['UserName']
 					TargetDomain    = $data['DomainName']
 					WorkstationName = $data['WorkstationName']
-					SChannelName	= $data['SChannelName']
-					SChannelType	= $SChannelTypes[$data['SChannelType']]
+					SChannelName    = $data['SChannelName']
+					SChannelType    = $SChannelTypes[$data['SChannelType']]
 				}
 			}
 		}
 
-	} catch {
+	}
+ catch {
 		Write-Host -ForegroundColor Red "Error retrieving Event ID 8004 from $DC :"
 		Write-Host -ForegroundColor Red "->  $($_.Exception.Message)"
 	}
