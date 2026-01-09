@@ -10,6 +10,8 @@ These configuration scripts are work in progress:
 
 - Non domain joined workstations will sucessfully authenticate with Kerberos using these scripts.
 
+- Domain-joined workstations will sucessfully authenticate with Kerberos using these scripts as long as they belong to the same domain (*Realm*).
+
 - The definition of BYOD seems to exclude communications from domain joined workstations where there is no trust relationship between the caller's domain and the RD Gateway's domain. As of this writing, Kerberos on Windows Server 2025 domains authenticates the Built-in Administrator Account connecting from such workstations. Connections using other domain accounts  downgrade to NTLM.
 
 - In this instance, issuing the connection from a local account on the same workstation will successfully authenticate with Kerberos without any configuration change.
