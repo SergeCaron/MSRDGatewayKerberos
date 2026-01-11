@@ -1,9 +1,10 @@
 ##******************************************************************
-## Revision date: 2026.01.06
+## Revision date: 2026.01.11
 ##
 ##		2025.12.19: Proof of concept / Initial release
 ##		2026.01.02:	Exit if not running in an elevated command prompt
 ##		2026.01.06: Use proper location for Kerberos policies
+##		2026.01.11:	Allow removal of realm
 ##
 ## Copyright (c) 2025 PC-Évolution enr.
 ## This code is licensed under the GNU General Public License (GPL).
@@ -37,8 +38,17 @@ if (!$myWindowsPrincipal.IsInRole($adminRole)) {
 
 ### Get the Realm and the Remote Desktop Gateway (with a minimum level of validation)
 $Realm = Read-Host "Please enter the remote Active Directory domain name (not the NetBIOS domain name)"
+
+# Delete existing mapping and dump actual configuration
+if ( -not [string]::IsNullOrEmpty($(ksetup /DumpState | Select-String -Pattern "$Realm`:")) ) {
+	ksetup /DelHostToRealmMap ".$Realm" "$Realm"	# /RemoveRealm will not remove duplicate mappings
+	ksetup /RemoveRealm $Realm
+	Write-Warning "Realm $Realm removed from Kerberos configuration."
+}
+ksetup /DumpState
+
 # Issue warnings for unreachable hosts
-$KdcFQDN = Read-Host "Please enter the fully qualified domain name (FQDN) of the Remote Desktop Gateway"
+$KdcFQDN = Read-Host "Please enter the fully qualified domain name (FQDN) of the Remote Desktop Gateway (^C to exit)"
 $KdcConnection = Test-NetConnection -ComputerName $KdcFQDN -Port 443 -ErrorAction SilentlyContinue
  
 
@@ -58,10 +68,6 @@ $KerberosPolicies = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Sy
 
 ### Delete this realm and dump actual configuration
 
-ksetup /DelHostToRealmMap ".$Realm" "$Realm"	# /RemoveRealm will not remove duplicate mappings
-ksetup /RemoveRealm $Realm
-
-ksetup /DumpState
 
 ## Host to Realm
 
