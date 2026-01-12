@@ -1,12 +1,13 @@
 ##******************************************************************
-## Revision date: 2026.01.11
+## Revision date: 2026.01.12
 ##
 ##		2025.12.19: Proof of concept / Initial release
 ##		2026.01.02:	Exit if not running in an elevated command prompt
 ##		2026.01.06: Use proper location for Kerberos policies
 ##		2026.01.11:	Allow removal of realm
+##		2026.01.12:	Warn if creating realm using the domain name
 ##
-## Copyright (c) 2025 PC-Évolution enr.
+## Copyright (c) 2026 PC-Évolution enr.
 ## This code is licensed under the GNU General Public License (GPL).
 ##
 ## THIS CODE IS PROVIDED *AS IS* WITHOUT WARRANTY OF
@@ -38,6 +39,7 @@ if (!$myWindowsPrincipal.IsInRole($adminRole)) {
 
 ### Get the Realm and the Remote Desktop Gateway (with a minimum level of validation)
 $Realm = Read-Host "Please enter the remote Active Directory domain name (not the NetBIOS domain name)"
+$Realm = $Realm.ToUPPER()	# Realms are uppercase
 
 # Delete existing mapping and dump actual configuration
 if ( -not [string]::IsNullOrEmpty($(ksetup /DumpState | Select-String -Pattern "$Realm`:")) ) {
@@ -47,6 +49,13 @@ if ( -not [string]::IsNullOrEmpty($(ksetup /DumpState | Select-String -Pattern "
 }
 ksetup /DumpState
 
+### Try to avoid creating a realm for the currently joined Domain
+if ( $Realm -eq $(Get-WmiObject -Class Win32_ComputerSystem).Domain.ToUpper() ) {
+	If ($(Read-Host "This configuration will introduce long delays to login. Enter 'Yes' to abort, anything else to continue").tolower().StartsWith('yes')) `
+	{ exit 911 }
+
+}
+
 # Issue warnings for unreachable hosts
 $KdcFQDN = Read-Host "Please enter the fully qualified domain name (FQDN) of the Remote Desktop Gateway (^C to exit)"
 $KdcConnection = Test-NetConnection -ComputerName $KdcFQDN -Port 443 -ErrorAction SilentlyContinue
@@ -55,7 +64,6 @@ $KdcConnection = Test-NetConnection -ComputerName $KdcFQDN -Port 443 -ErrorActio
 ### Make sure proper case is used in these namespaces
 
 $KdcFQDN = $KdcFQDN.ToLOWER()
-$Realm = $Realm.ToUPPER()
 
 ### Warn if IIS is not reachable on $KdcFQDN
 if ( -not $(Test-NetConnection -ComputerName $KdcFQDN -Port 443) ) {
