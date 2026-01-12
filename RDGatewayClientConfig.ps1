@@ -6,6 +6,7 @@
 ##		2026.01.06: Use proper location for Kerberos policies
 ##		2026.01.11:	Allow removal of realm
 ##		2026.01.12:	Warn if creating realm using the domain name
+##					Display current user authentication
 ##
 ## Copyright (c) 2026 PC-Évolution enr.
 ## This code is licensed under the GNU General Public License (GPL).
@@ -36,6 +37,12 @@ if (!$myWindowsPrincipal.IsInRole($adminRole)) {
 	Write-Host
 	exit 911
 }
+
+### Display current user authentication 
+$Identity = [System.Security.Principal.WindowsIdentity]::GetCurrent()
+Write-Host "You are currently using $($Identity.AuthenticationType) to authenticate."
+if ( $Identity.IsAuthenticated ) { Write-Host "You are authenticated as $($Identity.Name)." }
+Write-Host
 
 ### Get the Realm and the Remote Desktop Gateway (with a minimum level of validation)
 $Realm = Read-Host "Please enter the remote Active Directory domain name (not the NetBIOS domain name)"
