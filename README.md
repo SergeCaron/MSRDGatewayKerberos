@@ -1,19 +1,21 @@
 # MSRDGatewayKerberos
-The convenience of NTLM credentials based authentication can be maintained with Kerberos. This is a BYOD project for MS RD Gateway Kerberos authentication of non-domain joined workstations.
+The convenience of NTLM credentials based authentication can be maintained with Kerberos. This is a BYOD project for MS RD Gateway Kerberos authentication of domain and non-domain joined workstations.
 
 Members of the *Protected Users* group must authenticate using Kerberos. 
 As documented *[here](https://awakecoding.com/posts/rd-gateway-without-kdc-proxy-causes-ntlm-downgrade/)*, *"if you have an RD Gateway deployed, did you know that unless a KDC proxy is also deployed on the same host and port, you have a guaranteed NTLM downgrade for the RD Gateway connection from mstsc"*.
 
 The purpose of this project is to configure the RD Gateway to avoid this guaranteed downgrade for connections from BYOD devices.
 
+Caution : Domain-joined workstations will sucessfully authenticate natively with Kerberos as long as they belong to the same domain (*Realm*) as the RD Gateway. Connections from a local account behave as BYOD devices. Device protections for members of the [Protected Users group](https://learn.microsoft.com/en-us/windows-server/security/credentials-protection-and-management/protected-users-security-group) always apply. For these users, member systems no longer support offline sign-in and RD connections must be made from a local account.
+
 These configuration scripts are work in progress:
 
 - Non domain joined workstations will sucessfully authenticate with Kerberos using these scripts.
 
-- Domain-joined workstations will sucessfully authenticate natively with Kerberos as long as they belong to the same domain (*Realm*). Explicitly configuring these clients (using the *RDGatewayClientConfig* script, for example) should be avoided. When the *Realm* is  configured, the time required to authenticate varies wildly from a few seconds if connecting from a local account of the workstation to a few minutes if connecting from a domain account. These delays are caused by the workstation's DNS configuration not allowing to reach a domain controller. The authentication traffic is encrypted within the RDP tunnel and the timeouts cannot be pinpointed using simple network traffic capture.
+- Same domain joined workstations will sucessfully authenticate with Kerberos using these scripts: this may be a security issue in your environment.
 
 
-- The definition of BYOD seems to exclude communications from domain joined workstations where there is no trust relationship between the caller's domain and the RD Gateway's domain. As of this writing, Kerberos on Windows Server 2025 domains authenticates the Built-in Administrator Account connecting from such workstations. Connections using other domain accounts  downgrade to NTLM.
+- The definition of BYOD seems to exclude communications from domain joined workstations where there is no trust relationship between the caller's domain and the RD Gateway's domain. As of this writing, Kerberos on Windows Server 2025 domains authenticates the Built-in Administrator Account connecting from such workstations. Connections using other domain accounts downgrade to NTLM.
 
 - In this instance, issuing the connection from a local account on the same workstation will successfully authenticate with Kerberos without any configuration change.
 
@@ -29,7 +31,7 @@ There are currently two scripts in this project. The name of these scripts may c
 
 - *RDGatewayConfigKerberos*: This script configures the parameters on the RDG residing either on a DC or on a domain joined server. This script should run whenever the RD Gateway certificate is renewed/replaced. A sample script is available demonstrating the a renewal using the "Certify The Web" package.
 
-- *RDGatewayClientConfig*: This script configures each "Realm" that a non-domain joined workstation will reach.
+- *RDGatewayClientConfig*: This script configures each *Realm* that a workstation will reach. **Caution**: Explicitly configuring a *Realm* with the domain name of a domain-joined client should be avoided. When such a *Realm* is  configured, the time required to authenticate varies wildly from a few seconds if connecting from a local account of the workstation to a few minutes if connecting from a domain account. These delays are caused by the workstation's DNS configuration not allowing to reach a domain controller. The authentication traffic is encrypted within the RDP tunnel and the timeouts cannot be pinpointed using simple network traffic capture.
 
 The first script runs on the RDG. It presume a valid public certificate is installed on the RDG and will setup the necessary parameters to exchange the appropriate tickets between the DC and the remote client. Basically, the script disable HTTPS client certificate authentication requirements for KDC Proxy operations and allow alternative methods, such as passwords or Kerberos over HTTPS, to be used without smart cards. At this point, this is the documentation ;-). See the note below regarding certificate renewals.
 
