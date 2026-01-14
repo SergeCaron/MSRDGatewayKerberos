@@ -6,7 +6,7 @@ As documented *[here](https://awakecoding.com/posts/rd-gateway-without-kdc-proxy
 
 The purpose of this project is to configure the RD Gateway to avoid this guaranteed downgrade for connections from BYOD devices.
 
-Caution : Domain-joined workstations will sucessfully authenticate natively with Kerberos as long as they belong to the same domain (*Realm*) as the RD Gateway. Connections from a local account behave as BYOD devices. Device protections for members of the [Protected Users group](https://learn.microsoft.com/en-us/windows-server/security/credentials-protection-and-management/protected-users-security-group) always apply. For these users, member systems no longer support offline sign-in and RD connections must be made from a local account.
+Caution : On domain-joined workstations, connections from a local account behave as BYOD devices. Domain accounts will sucessfully authenticate natively with Kerberos as long as they belong to the same domain (*Realm*) as the RD Gateway.  Device protections for members of the [Protected Users group](https://learn.microsoft.com/en-us/windows-server/security/credentials-protection-and-management/protected-users-security-group) always apply. For these users, member systems no longer support offline sign-in and RD connections must be made from a local account.
 
 These configuration scripts are work in progress:
 
@@ -26,6 +26,29 @@ The gist of this development can be found at [Microsoft Learn](https://learn.mic
 # Basic requirements
 All servers and clients must be configured to accept AES-256-CTS-HMAC-SHA1-96 and AES-128-CTS-HMAC-SHA1-96 encryption in this context. There is no effort to turn RC4 encryption off domain wise: however, AES encryption types must be supported at the user and machine level. This may involved resetting the password of all affected accounts if AES is not supported on the DC before AES is used.
 
+# Client requirements
+A properly configured RDP connector must be created for each target computer.
+
+Start Remote Desktop in Windows (mstsc.exe), configure the remote host to connect to within the *target realm* and the Remote Desktop Gateway. Save these Remote Desktop Connection Settings to a RDP File.
+
+Each RDP file must be edited to have a successful connection between client and server.
+- The value rdgiskdcproxy must be set to 1
+(rdgiskdcproxy:i:1)
+- The value kdcproxyname must be set to the Remote Desktop Gateway fully qualified domain name
+(kdcproxyname:s:fqdn)
+- The value gatewayhostname must also be set to the Remote Desktop Gatway
+(gatewayhostname:s:fqdn)
+
+On a non-domain joined workstation, connect using the RDP file (double click or explicit command line) and supply the credentials in UPN (*user@targetrealm*). Kerbeos is not concerned with SingleSignOn and multiple credentials are still allowed.
+
+On a domain joined workstation, the user can do the same using a local user account. If it is not convenient, the user can invoke a local user account when initiating the remote desktop connection. In PowerShell 5.1, the command 
+
+````
+Start-Process mstsc.exe -ArgumentList PathToConnector.rdp `
+    -Credential $(Get-Credential -Message "Specify a Local user account:")
+````
+will successfully connect through the RD Gateway using Kerberos. The RDP session runs under the context of the local user: operations such as cut and paste are limited and it is suggested to switch to a local session to support these and other features.
+
 # The scripts
 There are currently two scripts in this project. The name of these scripts may change in the future as this documentation is rewritten.
 
@@ -44,27 +67,6 @@ The second script runs on the client, domain joined or not, for EACH external re
 
 - The script *RestartRemoteServices* demonstrates restarting all remote services following a certificate renewal using the *Certify the Web* software. See the note below for details.
 
-
-# Operations
-Start Remote Desktop in Windows (mstsc.exe), configure the remote host to connect to within the *target realm* and the Remote Desktop Gateway. Save these Remote Desktop Connection Settings to a RDP File.
-
-Each RDP file must be edited to have a successful connection between client and server.
-- The value rdgiskdcproxy must be set to 1
-(rdgiskdcproxy:i:1)
-- The value kdcproxyname must be set to the Remote Desktop Gateway fully qualified domain name
-(kdcproxyname:s:fqdn)
-- The value gatewayhostname must also be set to the Remote Desktop Gatway
-(gatewayhostname:s:fqdn)
-
-On a non-domain joined workstation, connect using the RDP file (double click or explicit command line) and supply the credentials in UPN (*user@targetrealm*). Kerbeos is not concerned with SingleSignOn and multiple credentials are still allowed.
-
-On a domain joined workstation, the user can login using a local user account. If it is not convenient, the user can invoke a local user account when initiating the remote desktop connection. In PowerShell 5.1, the command 
-
-````
-Start-Process mstsc.exe -ArgumentList PathToConnector.rdp `
-    -Credential $(Get-Credential -Message "Specify a Local user account:")
-````
-will successfully connect through the RD Gateway using Kerberos. The RDP session runs under the context of the local user: operations such as cut and paste are limited and it is suggested to switch to a local session to support these and other features.
 
 # Other notes
 
