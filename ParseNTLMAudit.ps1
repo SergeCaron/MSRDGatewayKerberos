@@ -1,7 +1,8 @@
 ##******************************************************************
-## Revision date: 2026.01.08
+## Revision date: 2026.01.25
 ##
 ##		2026.01.08: Proof of concept / Initial release
+##		2026.01.25:	Add users and workstation filters
 ##
 ##
 ## The original script was generated from some AI and modified to 
@@ -34,7 +35,9 @@
 
 param (
 	[datetime]$StartTime = (Get-Date).AddDays(-1), # Default: last 24 hours
-	[datetime]$EndTime = (Get-Date)              # Default: now
+	[datetime]$EndTime = (Get-Date),              # Default: now
+	[array] $Exclusions = @(),
+	[array] $IncludeOnly = $null
 )
 
 # Get the ID and security principal of the current user account
@@ -102,14 +105,17 @@ foreach ($DC in $DCs) {
 					$data[$d.Name] = $d.'#text'
 				}
 
-				[PSCustomObject]@{
-					TimeCreated     = $event.TimeCreated
-					Controller      = $DC.Split('.')[0]
-					TargetUser      = $data['UserName']
-					TargetDomain    = $data['DomainName']
-					WorkstationName = $data['WorkstationName']
-					SChannelName    = $data['SChannelName']
-					SChannelType    = $SChannelTypes[$data['SChannelType']]
+				if ( (($null -eq $IncludeOnly) -or ($IncludeOnly -match $data['SChannelName'].ToLower())) `
+						-and (-not ($Exclusions -match $data['UserName'].ToLower())) ) {
+					[PSCustomObject]@{
+						TimeCreated     = $event.TimeCreated
+						Controller      = $DC.Split('.')[0]
+						TargetUser      = $data['UserName']
+						TargetDomain    = $data['DomainName']
+						WorkstationName = $data['WorkstationName']
+						SChannelName    = $data['SChannelName']
+						SChannelType    = $SChannelTypes[$data['SChannelType']]
+					}
 				}
 			}
 		}

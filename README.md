@@ -8,6 +8,10 @@ The purpose of this project is to configure the RD Gateway to avoid this guarant
 
 Caution : On domain-joined workstations, connections from a local account behave as BYOD devices. Domain accounts will sucessfully authenticate natively with Kerberos as long as they belong to the same domain (*Realm*) as the RD Gateway.  Device protections for members of the [Protected Users group](https://learn.microsoft.com/en-us/windows-server/security/credentials-protection-and-management/protected-users-security-group) always apply. For these users, member systems no longer support offline sign-in and RD connections must be made from a local account.
 
+A graph representing these restrictions:
+
+![Graph](Ressources/RDP_Connection.jpg)
+
 These configuration scripts are work in progress:
 
 - Non domain joined workstations will sucessfully authenticate with Kerberos using these scripts.
@@ -49,6 +53,8 @@ Start-Process mstsc.exe -ArgumentList PathToConnector.rdp `
 ````
 will successfully connect through the RD Gateway using Kerberos. The RDP session runs under the context of the local user: operations such as cut and paste are limited and it is suggested to switch to a local session to support these and other features.
 
+The script *RDPKerberosLauncher* facilitates the use of a local account when run by a domain user from a disjoint domain joined workstation: this is a convenience, the end result is the same as the *Start-Process* command shown above.
+
 # The scripts
 There are currently two scripts in this project. The name of these scripts may change in the future as this documentation is rewritten.
 
@@ -63,7 +69,7 @@ The second script runs on the client, domain joined or not, for EACH external re
 
 # Utility scripts
 
-- The script *ParseNTLMAudit* enumerates all NTLM audit entries from all DCs in the domain. The script parameters are *-StartTime* and *-EndTime* and the default date range is the last 24 hours. Enabling NTLM auditing on the domain is not documented here.
+- The script *ParseNTLMAudit* enumerates all NTLM audit entries from all DCs in the domain. The script parameters are *-StartTime* and *-EndTime* and the default date range is the last 24 hours. The parameter *-Exclusions* enumerates users to be excluded from this audit. The parameter *-IncludeOnly* restricts the audit to specified computers. In this project, the typical target is the Remote Desktop Gateway. Enabling NTLM auditing on the domain is not documented here.
 
 - The script *RestartRemoteServices* demonstrates restarting all remote services following a certificate renewal using the *Certify the Web* software. See the note below for details.
 
