@@ -58,7 +58,7 @@ ksetup /DumpState
 
 ### Try to avoid creating a realm for the currently joined Domain
 if ( $Realm -eq $(Get-WmiObject -Class Win32_ComputerSystem).Domain.ToUpper() ) {
-	If ($(Read-Host "This configuration will introduce long delays to login. Enter 'Yes' to abort, anything else to continue").tolower().StartsWith('yes')) `
+	if ($(Read-Host "This configuration will introduce long delays to login. Enter 'Yes' to abort, anything else to continue").tolower().StartsWith('yes')) `
 	{ exit 911 }
 
 }
